@@ -66,16 +66,13 @@ DDPCONbits.JTAGEN = 0;
 
 __builtin_enable_interrupts();
 
-
-
-//I think the 3 loops will go here??
-//char message[10];
-//sprintf(message,"hello");
-//i//nt i=0;
-//while (message[i]){
-    //display_message_i(); 
-    //i++;
-
+display_init();//initialize screen
+display_clear();// clear what was on the screen before
+//char k=0x6b;
+char I=0x49;//the symbol you want to send
+display_message_i(I); 
+    
+display_draw();//draw on the screen
 
 
     // set up USER pin as input
@@ -242,34 +239,35 @@ static const char ASCII[96][5] = {
 }; // end char ASCII[96][5]
 
 int display_message_i(char message){
-    display_init();
-    
-    char ASCII_variable, ASCII_arr[5];
-    int character[8][5];
-    ASCII_variable= message- 0x20;
-    ASCII_arr= ASCII[ASCII_variable]; 
-        int array [ 1 1 1 1 1 1 1 1], line;
-        int ii;
-           
+   int ASCII_variable, ASCII_arr[5];
+   int ii, k, line, character[8], bits[8][5];
+   //int character[8][5];
+   //int character [8];
+        
         for (ii=0; ii<5; ii++){
-             
-            
-        line= ASCII_arr & array; 
-        character[ii]=line;
+     ASCII_variable= message- 0x20;
+     ASCII_arr[ii]= ASCII[ASCII_variable][ii]; 
+        //int arrayofones[8]={ 1, 1 ,1, 1, 1 ,1, 1 ,1 };
+      line = ASCII_arr[ii];
+        
+      for (k=0; k<8; k++) { // for loop creates an array out of the hex value in ASCII_array
+            bits[k][ii] = line & 1;
+            line>>=1;
+        
         }
-    int row, col;
+    int row=0, col=0;
     
     for (col=0; col < 5; col++){
         for (row=0; row < 8; row++){
-            display_pixel_set(row, col, character[row][col]);
+            display_pixel_set(row, col, bits[row][col]);
             
-            display_draw();
-            }
             
-                     
-                    
+            }        
             }
+    
         }
+}
+
     
 
 
