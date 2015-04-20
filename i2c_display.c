@@ -1,4 +1,3 @@
-
 #include "i2c_master_int.h"
 #include "i12c_display.h"
 #include <stdlib.h>

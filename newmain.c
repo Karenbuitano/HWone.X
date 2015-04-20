@@ -1,124 +1,128 @@
-#include <xc.h> // processor SFR definitions
+
+#include<xc.h> // processor SFR definitions
 #include<sys/attribs.h> // __ISR macro
-#include "i12c_display.h" // i2c display header file
-#include "i2c_master_int.h"
-//These are the available DEVCFG bits for the PIC32MX250F128B are listed in the documentation that comes with XC32, in microchip/xc32/v1.33/docs/config_docs/32mx250f128b.html
+#include"i12c_display.h"
+#include"i2c_master_int.h"
 
 // DEVCFG0
-#pragma config DEBUG = OFF // no debugging
-#pragma config JTAGEN = OFF // no jtag
-#pragma config ICESEL = ICS_PGx1 // use PGED1 and PGEC1
-#pragma config PWP = OFF // no write protect
-#pragma config BWP = OFF // not boot write protect
-#pragma config CP = OFF // no code protect
+    #pragma config DEBUG = OFF // no debugging
+    #pragma config JTAGEN = OFF // no jtag
+    #pragma config ICESEL = ICS_PGx1 // use PGED1 and PGEC1
+    #pragma config PWP = OFF // no write protect
+    #pragma config BWP = OFF // not boot write protect
+    #pragma config CP = OFF // no code protect
 
 // DEVCFG1
-#pragma config FNOSC = PRIPLL // use primary oscillator with pll
-#pragma config FSOSCEN = OFF // turn off secondary oscillator
-#pragma config IESO = OFF // no switching clocks
-#pragma config POSCMOD = HS // high speed crystal mode
-#pragma config OSCIOFNC = OFF // free up secondary osc pins by turning sosc off
-#pragma config FPBDIV = DIV_1 // divide CPU freq by 1 for peripheral bus clock
-#pragma config FCKSM = CSDCMD // do not enable clock switch
-#pragma config WDTPS = PS1 // slowest wdt
-#pragma config WINDIS = OFF // no wdt window
-#pragma config FWDTEN = OFF // wdt off by default
-#pragma config FWDTWINSZ = WINSZ_25 // wdt window at 25%
+    #pragma config FNOSC = PRIPLL // use primary oscillator with pll
+    #pragma config FSOSCEN = OFF // turn off secondary oscillator
+    #pragma config IESO = OFF // no switching clocks
+    #pragma config POSCMOD = HS // high speed crystal mode
+    #pragma config OSCIOFNC = OFF // free up secondary osc pins
+    #pragma config FPBDIV = DIV_1 // divide CPU freq by 1 for bus clock
+    #pragma config FCKSM = CSDCMD // do not enable clock switch
+    #pragma config WDTPS = PS1048576 // slowest wdt
+    #pragma config WINDIS = OFF // no wdt window
+    #pragma config FWDTEN = OFF // wdt off by default
+    #pragma config FWDTWINSZ = WINSZ_25 // wdt window at 25%
 
-// DEVCFG2 - get the CPU clock to 40MHz 
-#pragma config FPLLIDIV = DIV_2 // divide input clock to be in range 4-5MHz
-#pragma config FPLLMUL = MUL_20 // multiply clock after FPLLIDIV
-#pragma config FPLLODIV = DIV_2 // divide clock after FPLLMUL to get 40MHz
-#pragma config UPLLIDIV = DIV_2 // divide 8MHz input clock, then multiply by 12 to get 48MHz for USB
-#pragma config UPLLEN = ON // USB clock on
+// DEVCFG2 - get the CPU clock to 40MHz
+    #pragma config FPLLIDIV = DIV_2 // divide input clock to be in range 4-5MHz
+    #pragma config FPLLMUL = MUL_20 // multiply clock after FPLLIDIV
+    #pragma config FPLLODIV = DIV_2 // divide clock after FPLLMUL to get 40MHz
+    #pragma config UPLLIDIV = DIV_2 // divide 8MHz input clock
+    #pragma config UPLLEN = ON // USB clock on
 
 // DEVCFG3
-#pragma config USERID = 0 // some 16bit userid, doesn't matter what
-#pragma config PMDL1WAY = ON // allow only one reconfiguration
-#pragma config IOL1WAY = ON // allow only one reconfiguration
-#pragma config FUSBIDIO = ON // USB pins controlled by USB module
-#pragma config FVBUSONIO = ON // controlled by USB module
+    #pragma config USERID = 0 // some 16bit userid
+    #pragma config PMDL1WAY = ON // not multiple reconfiguration, check this
+    #pragma config IOL1WAY = ON // not multimple reconfiguration, check this
+    #pragma config FUSBIDIO = ON // USB pins controlled by USB module
+    #pragma config FVBUSONIO = ON // controlled by USB module
 
 int readADC(void);
-int display_message_i(char message); 
+int display_message_i(char message,int counter);
+
 int main() {
+    // startup
+    __builtin_disable_interrupts();
 
-   //Startup code to run as fast as possible and get pins back from bad defaults
-
-__builtin_disable_interrupts();
-
-// set the CP0 CONFIG register to indicate that
-// kseg0 is cacheable (0x3) or uncacheable (0x2)
-// see Chapter 2 "CPU for Devices with M4K Core"
-// of the PIC32 reference manual
-__builtin_mtc0(_CP0_CONFIG, _CP0_CONFIG_SELECT, 0xa4210583);
-
-// no cache on this chip!
-
-// 0 data RAM access wait states
-BMXCONbits.BMXWSDRM = 0x0;
-
-// enable multi vector interrupts
-INTCONbits.MVEC = 0x1;
-
-// disable JTAG to be able to use TDI, TDO, TCK, TMS as digital
-DDPCONbits.JTAGEN = 0;
-
-__builtin_enable_interrupts();
-
-display_init();//initialize screen
-display_clear();// clear what was on the screen before
-//char k=0x6b;
-char I=0x49;//the symbol you want to send
-display_message_i(I); 
+    // set the CP0 CONFIG register to indicate that
+    // kseg0 is cacheable (0x3) or uncacheable (0x2)
+    // see Chapter 2 "CPU for Devices with M4K Core"
+    // of the PIC32 reference manual
+    __builtin_mtc0(_CP0_CONFIG, _CP0_CONFIG_SELECT, 0xa4210583);
     
-display_draw();//draw on the screen
+    // no cache on this chip!
 
+    // 0 data RAM access wait states
+    BMXCONbits.BMXWSDRM = 0x0;
 
+    // enable multi vector interrupts
+    INTCONbits.MVEC = 0x1;
+
+    // disable JTAG to be able to use TDI, TDO, TCK, TMS as digital
+    DDPCONbits.JTAGEN = 0;
+
+    __builtin_enable_interrupts();
+    
+    
+    
+    display_init();
+    display_clear();
+    char message[100];
+    sprintf(message,"Hello world 1337!");
+    int counter=0;
+    while(message[counter]) {
+        display_message_i(message[counter],counter);
+        counter++;
+    }
+    display_draw();
+    
+    
+    
     // set up USER pin as input
-ANSELBbits.ANSB13 = 0; // 0 for digital, 1 for analog
+    ANSELBbits.ANSB13 = 0; // sets pin B13 to digital input
 
-    // set up LED1 pin as a digital output
-TRISBbits.TRISB7=0;
-//RPB7Rbits.RPB7R = 0b0001; // set U1RX to pin A2
-//LATBbits.LATB7=0;
-    // set up LED2 as OC1 using Timer2 at 1kHz
-RPB15Rbits.RPB15R = 0b0101; // set B15 to U1TX
+    // set up LED1 as digital output
+    TRISBbits.TRISB7 = 0;
+    //RPB7Rbits.RPB7R = 0b0001; // set B7 to U1TX
+    
+    // Set LED2 as OC1 using Timer2 at 1kHz
+    RPB15Rbits.RPB15R = 0b0101; // sets pin B15 to output compare
+    T2CONbits.TCKPS = 0;		// sets pre-scaler to 1
+	PR2 = 39999;				// sets maximum counter value
+	TMR2 = 0;					// initializes timer 2
+	OC1CONbits.OCM = 0b110;		// use without fail safe
+	OC1RS = 2000;				// sets duty cycle to 50%
+	OC1R = 2000;				// sets initial duty cycle to 50%
+	T2CONbits.ON = 1;			// turns timer on
+	OC1CONbits.ON = 1;			// turns output control on
 
-T2CONbits.TCKPS = 0;//set pre-scaler to 1
-PR2 = 39999;
-TMR2=0;
-OC1CONbits.OCM = 0b110;
-OC1RS = 2000;
-OC1R= 2000;
-T2CONbits.ON=1;
-OC1CONbits.ON=1;
-
-
-    // set up A0 as AN0
-    ANSELAbits.ANSA0 = 1;
+    // Read the analog input
+    ANSELAbits.ANSA0 = 1; // sets pin A0 to analog input
     AD1CON3bits.ADCS = 3;
     AD1CHSbits.CH0SA = 0;
     AD1CON1bits.ADON = 1;
-
+    
     while (1) {
-        // invert pin every 0.5s, set PWM duty cycle % to the pot voltage output %
-        _CP0_SET_COUNT(0); // set core timer to 0, remember it counts at half the CPU clock
-    LATBINV = 0b10000000; // invert a pin
+        _CP0_SET_COUNT(0); // set core timer to 0
+        LATBINV = 0b10000000; // invert pin B7 for LED1
 
-    // wait for half a second, setting LED brightness to pot angle while waiting
-    while (_CP0_GET_COUNT() < 10000000) {
-        int val;
-        val = readADC();
-        OC1RS = val * 39; //divide by 40,000/1023 = 39
+        // wait for half a second, setting LED brightness to pot angle
+        while (_CP0_GET_COUNT() < 10000000) {
+            int val;
+            val = readADC();
+            OC1RS = val * 39; // value/1023 * 400000 simplifies to about 39
 
-        if (PORTBbits.RB13 == 1) {
-            // nothing
-        } else {
-            LATBINV = 0b10000000;
+            if (PORTBbits.RB13 == 1) {
+                // nothing
+            } else {
+                LATBINV = 0b10000000; // invert LED1 as fast as possible
+            }
         }
     }
-    }
+    
+
 }
 
 int readADC(void) {
@@ -138,7 +142,7 @@ int readADC(void) {
     a = ADC1BUF0;
     return a;
 }
-// lookup table for all of the ascii characters
+
 static const char ASCII[96][5] = {
  {0x00, 0x00, 0x00, 0x00, 0x00} // 20  (space)
 ,{0x00, 0x00, 0x5f, 0x00, 0x00} // 21 !
@@ -238,33 +242,27 @@ static const char ASCII[96][5] = {
 ,{0x00, 0x06, 0x09, 0x09, 0x06} // 7f ?
 }; // end char ASCII[96][5]
 
-int display_message_i(char message){
-   int ASCII_variable, ASCII_arr[5];
-   int ii, k, line, character[8], bits[8][5];
-   //int character[8][5];
-   //int character [8];
-        
-        for (ii=0; ii<5; ii++){
-     ASCII_variable= message- 0x20;
-     ASCII_arr[ii]= ASCII[ASCII_variable][ii]; 
-        //int arrayofones[8]={ 1, 1 ,1, 1, 1 ,1, 1 ,1 };
-      line = ASCII_arr[ii];
-        
-      for (k=0; k<8; k++) { // for loop creates an array out of the hex value in ASCII_array
-            bits[k][ii] = line & 1;
-            line>>=1;
-        
-        }
-    int row=0, col=0;
-    
-    for (col=0; col < 5; col++){
-        for (row=0; row < 8; row++){
-            display_pixel_set(row, col, bits[row][col]);
-            
-            
-            }        
+
+int display_message_i(char message,int counter) {
+        int ASCII_variable, ASCII_arr[5];
+        int ii, k, dummy[8][1] = {1, 1, 1, 1, 1, 1, 1, 1}, line, character[8], bits[8][5];
+
+        for (ii=0; ii<5; ii++) {
+            ASCII_variable = message - 0x20; // gets row number in ASCII
+            ASCII_arr[ii] = ASCII[ASCII_variable][ii]; // gives one array of 5 hex numbers from ASCII
+
+            line = ASCII_arr[ii];
+            for (k=0; k<8; k++) { // for loop creates an array out of the hex value in ASCII_array
+                bits[k][ii] = line & 1;
+                line>>=1;
             }
-    
+        }
+
+        int row, col;
+        for (col=0; col<5; col++) {
+            for (row=0; row<8; row++) {
+                display_pixel_set(row,col+(counter*5),bits[row][col]);
+            }
         }
 }
 

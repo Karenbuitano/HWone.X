@@ -1,10 +1,3 @@
-/* 
- * File:   i2c_master_int.h
- * Author: karenbuitano
- *
- * Created on April 12, 2015, 9:07 PM
- */
-
 #ifndef I2C_MASTER_INT__H__
 #define I2C_MASTER_INT__H__
 
