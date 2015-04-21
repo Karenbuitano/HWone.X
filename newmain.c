@@ -133,9 +133,11 @@ int main() {
     g[ii]=(float)accels[ii]/(float) 16384; 
  }
  numpixels[0]=(float)accels[0]/(float)512;
+ //numpixels[0]=(float)accels[0]*(float)64;
+ //numpixels[1]=(float)accels[1]*(float)
  numpixels[1]=(float)accels[1]/(float)1024;
  char message[100];
-    sprintf(message," %d %d %d ", g[0],g[1],g[2]);
+    sprintf(message," %d %d ", numpixels[0],numpixels[1]);//g[2]);
     //sprintf(message,"hey hey");
     int counter=0;
     while(message[counter]) {
@@ -354,7 +356,9 @@ int display_message_i(char message,int counter) {
         }
 }
 
-    
+//int display_acc(numpixels[ii],){
+    // 
+//}   
 
 
 
