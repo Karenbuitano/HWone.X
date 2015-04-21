@@ -3,6 +3,7 @@
 #include<sys/attribs.h> // __ISR macro
 #include"i12c_display.h"
 #include"i2c_master_int.h"
+#include "accel.h"
 
 // DEVCFG0
     #pragma config DEBUG = OFF // no debugging
@@ -63,22 +64,94 @@ int main() {
     // disable JTAG to be able to use TDI, TDO, TCK, TMS as digital
     DDPCONbits.JTAGEN = 0;
 
+    acc_setup();
     __builtin_enable_interrupts();
     
     
     
-    display_init();
-    display_clear();
-    char message[100];
-    sprintf(message,"Hello world 1337!");
+   
+   //This works to print just characters to the screen
+   
+   // char message[100];
+    //sprintf(message,"Hey hey hey!");
+    //int counter=0;
+    //while(message[counter]) {
+       // display_message_i(message[counter],counter);
+       // counter++;
+    //}
+   // display_draw();
+    
+    
+    short accels[3]; // accelerations for the 3 axes
+
+    short mags[3]; // magnetometer readings for the 3 axes
+
+    short temp;
+    
+    // read the accelerometer from all three axes
+
+// the accelerometer and the pic32 are both little endian by default (the lowest address has the LSB)
+
+// the accelerations are 16-bit twos compliment numbers, the same as a short
+
+acc_read_register(OUT_X_L_A, (unsigned char *) accels, 6);
+
+// need to read all 6 bytes in one transaction to get an update.
+// accels[0]= the bit for x
+//accels[1]= the bit for y
+// while loop. accels is the output. If accels is positive in the x direction, do something if accels is negative in the x direction, do something. If it is positive in the y direction, do something. If it is negative in the y direction, do something.
+char message[100];
+//I want to read in an x value which correspond to accels[0]
+//I want to read in a y value which correspond to accels[1]
+
+//I want to constantly update so that the numbers change
+//I know that accels is [x y z] with 6 bites of data x=2 bytes, y= 2 bytes, z=2 bytes
+//while loop so that constantly being updated
+//if in the x direction: 
+//loop, go through xg/128 times 2g in 64 pixels, light up that many pixels, clear the remaining pixels, 
+//if changing direction, clear all pixels before, fill in all after origin
+//for loop through 64 times, 
+//turn on bits until pixels= number of gs
+//turn everything after that off
+// display pixels
+//while loop again 
+
+
+
+
+
+
+
+ display_init();
+ display_clear();
+    sprintf(message," %d %d %d %d %d %d", accels);
     int counter=0;
     while(message[counter]) {
-        display_message_i(message[counter],counter);
+       display_message_i(message[counter],counter);
         counter++;
     }
     display_draw();
     
-    
+
+/*else if(accels[0]<0){
+    sprintf(message,"the negative x acceleration is", accels[0]);
+    int counter=0;
+    while(message[counter]) {
+       display_message_i(message[counter],counter);
+        counter++;
+    }
+    display_draw();
+}
+else if(accels[1]>0){
+    sprintf(message,"the positive ")
+}*/
+
+
+acc_read_register(OUT_X_L_M, (unsigned char *) mags, 6);
+
+// read the temperature data. Its a right justified 12 bit two's compliment number
+
+acc_read_register(TEMP_OUT_L, (unsigned char *) &temp, 2);
     
     // set up USER pin as input
     ANSELBbits.ANSB13 = 0; // sets pin B13 to digital input

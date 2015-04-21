@@ -6,6 +6,7 @@
                    projectFiles="true">
       <itemPath>i12c_display.h</itemPath>
       <itemPath>i2c_master_int.h</itemPath>
+      <itemPath>accel.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -17,6 +18,7 @@
       <itemPath>newmain.c</itemPath>
       <itemPath>i2c_display.c</itemPath>
       <itemPath>i2c_master_int.c</itemPath>
+      <itemPath>spi_accel.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -116,6 +118,9 @@
         <property key="save-temps" value="false"/>
         <property key="wpo-lto" value="false"/>
       </C32Global>
+      <PICkit3PlatformTool>
+        <property key="firmware.download.all" value="false"/>
+      </PICkit3PlatformTool>
     </conf>
   </confs>
 </configurationDescriptor>
