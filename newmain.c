@@ -94,13 +94,13 @@ int main() {
 
 // the accelerations are 16-bit twos compliment numbers, the same as a short
 
-acc_read_register(OUT_X_L_A, (unsigned char *) accels, 6);
+
 
 // need to read all 6 bytes in one transaction to get an update.
 // accels[0]= the bit for x
 //accels[1]= the bit for y
 // while loop. accels is the output. If accels is positive in the x direction, do something if accels is negative in the x direction, do something. If it is positive in the y direction, do something. If it is negative in the y direction, do something.
-char message[100];
+
 //I want to read in an x value which correspond to accels[0]
 //I want to read in a y value which correspond to accels[1]
 
@@ -122,15 +122,30 @@ char message[100];
 
 
 
+    int numpixels[2];
+    int ii=0;
+    float g[3];
+ while (1){
+ acc_read_register(OUT_X_L_A, (unsigned char *) accels, 6);
  display_init();
  display_clear();
-    sprintf(message," %d %d %d %d %d %d", accels);
+ for (ii=0;ii<3;ii++){
+    g[ii]=(float)accels[ii]/(float) 16384; 
+ }
+ numpixels[0]=(float)accels[0]/(float)512;
+ numpixels[1]=(float)accels[1]/(float)1024;
+ char message[100];
+    sprintf(message," %d %d %d ", g[0],g[1],g[2]);
+    //sprintf(message,"hey hey");
     int counter=0;
     while(message[counter]) {
        display_message_i(message[counter],counter);
         counter++;
     }
     display_draw();
+   //r++;
+ }
+    
     
 
 /*else if(accels[0]<0){
