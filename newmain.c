@@ -42,7 +42,7 @@
 
 int readADC(void);
 int display_message_i(char message,int counter);
-
+int display_acc(int numpixels[2]);
 int main() {
     // startup
     __builtin_disable_interrupts();
@@ -133,8 +133,7 @@ int main() {
     g[ii]=(float)accels[ii]/(float) 16384; 
  }
  numpixels[0]=(float)accels[0]/(float)512;
- //numpixels[0]=(float)accels[0]*(float)64;
- //numpixels[1]=(float)accels[1]*(float)
+
  numpixels[1]=(float)accels[1]/(float)1024;
  char message[100];
     sprintf(message," %d %d ", numpixels[0],numpixels[1]);//g[2]);
@@ -332,23 +331,24 @@ static const char ASCII[96][5] = {
 ,{0x00, 0x06, 0x09, 0x09, 0x06} // 7f ?
 }; // end char ASCII[96][5]
 
-
+int row, col;
+int counter;
 int display_message_i(char message,int counter) {
         int ASCII_variable, ASCII_arr[5];
         int ii, k, dummy[8][1] = {1, 1, 1, 1, 1, 1, 1, 1}, line, character[8], bits[8][5];
 
         for (ii=0; ii<5; ii++) {
             ASCII_variable = message - 0x20; // gets row number in ASCII
-            ASCII_arr[ii] = ASCII[ASCII_variable][ii]; // gives one array of 5 hex numbers from ASCII
+            ASCII_arr[ii] = ASCII[ASCII_variable][ii]; 
 
             line = ASCII_arr[ii];
-            for (k=0; k<8; k++) { // for loop creates an array out of the hex value in ASCII_array
+            for (k=0; k<8; k++) { 
                 bits[k][ii] = line & 1;
                 line>>=1;
             }
         }
 
-        int row, col;
+        
         for (col=0; col<5; col++) {
             for (row=0; row<8; row++) {
                 display_pixel_set(row,col+(counter*5),bits[row][col]);
@@ -356,9 +356,38 @@ int display_message_i(char message,int counter) {
         }
 }
 
-//int display_acc(numpixels[ii],){
-    // 
+//int display_acc(int numpixels[2]){
+    // want to create a 128 x 64 array
+// send to pixel set the number of pixels out of the 128 I want to turn on in the x direction, number out of the 64 I want to turn on in the y direction
+// 
+    //ggdram= array of 128 x 64 already
+// function of (start x, start y, number)
+// number is numpixels[0] or numpixels[1] (the number of pixels in the x or y direction)
+    //
+    //int row, col;
+        //for (col=0; col<5; col++) {
+            //for (row=0; row<8; row++) {
+                //display_pixel_set(row,col+(counter*5),bits[row][col]);
+            //}
+        //}
 //}   
+int display_acc_x(int startx,int starty, int numpixels[2]){
+    startx=64;
+    starty=32;
+    int m;int j;
+    if (numpixels[0]>0){ 
+    for (m=1;m<numpixels[0];m++){
+        for (j=1;j<2;j++){
+            if (startx+m<128){
+               display_pixel_set(startx+m, starty+j,1); 
+            }
+        }
+    }
+    
+    
+}
+}
+
 
 
 
