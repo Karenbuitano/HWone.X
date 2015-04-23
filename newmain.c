@@ -41,8 +41,11 @@
     #pragma config FVBUSONIO = ON // controlled by USB module
 
 int readADC(void);
+int display_acc_x( int numpixels[2]);
 int display_message_i(char message,int counter);
 int display_acc(int numpixels[2]);
+int display_acc_y(int numpixels[2]);
+
 int main() {
     // startup
     __builtin_disable_interrupts();
@@ -97,24 +100,7 @@ int main() {
 
 
 // need to read all 6 bytes in one transaction to get an update.
-// accels[0]= the bit for x
-//accels[1]= the bit for y
-// while loop. accels is the output. If accels is positive in the x direction, do something if accels is negative in the x direction, do something. If it is positive in the y direction, do something. If it is negative in the y direction, do something.
-
-//I want to read in an x value which correspond to accels[0]
-//I want to read in a y value which correspond to accels[1]
-
-//I want to constantly update so that the numbers change
-//I know that accels is [x y z] with 6 bites of data x=2 bytes, y= 2 bytes, z=2 bytes
-//while loop so that constantly being updated
-//if in the x direction: 
-//loop, go through xg/128 times 2g in 64 pixels, light up that many pixels, clear the remaining pixels, 
-//if changing direction, clear all pixels before, fill in all after origin
-//for loop through 64 times, 
-//turn on bits until pixels= number of gs
-//turn everything after that off
-// display pixels
-//while loop again 
+ 
 
 
 
@@ -135,32 +121,23 @@ int main() {
  numpixels[0]=(float)accels[0]/(float)512;
 
  numpixels[1]=(float)accels[1]/(float)1024;
- char message[100];
-    sprintf(message," %d %d ", numpixels[0],numpixels[1]);//g[2]);
+ //char message[100];
+    //sprintf(message," %d %d ", numpixels[0],numpixels[1]);//g[2]);
     //sprintf(message,"hey hey");
-    int counter=0;
-    while(message[counter]) {
-       display_message_i(message[counter],counter);
-        counter++;
-    }
+    //int counter=0;
+    //while(message[counter]) {
+       //display_message_i(message[counter],counter);
+       // counter++;
+   // }
+    
+    display_acc_x(numpixels);
+    display_acc_y(numpixels);
     display_draw();
    //r++;
  }
     
     
 
-/*else if(accels[0]<0){
-    sprintf(message,"the negative x acceleration is", accels[0]);
-    int counter=0;
-    while(message[counter]) {
-       display_message_i(message[counter],counter);
-        counter++;
-    }
-    display_draw();
-}
-else if(accels[1]>0){
-    sprintf(message,"the positive ")
-}*/
 
 
 acc_read_register(OUT_X_L_M, (unsigned char *) mags, 6);
@@ -356,37 +333,59 @@ int display_message_i(char message,int counter) {
         }
 }
 
-//int display_acc(int numpixels[2]){
-    // want to create a 128 x 64 array
-// send to pixel set the number of pixels out of the 128 I want to turn on in the x direction, number out of the 64 I want to turn on in the y direction
-// 
-    //ggdram= array of 128 x 64 already
-// function of (start x, start y, number)
-// number is numpixels[0] or numpixels[1] (the number of pixels in the x or y direction)
-    //
-    //int row, col;
-        //for (col=0; col<5; col++) {
-            //for (row=0; row<8; row++) {
-                //display_pixel_set(row,col+(counter*5),bits[row][col]);
-            //}
-        //}
-//}   
-int display_acc_x(int startx,int starty, int numpixels[2]){
-    startx=64;
-    starty=32;
-    int m;int j;
+  
+int display_acc_x(int numpixels[2]){// change function function prototype
+    int startx=64;
+   int  starty=32;
+    int m;int j;int mm;
+    int dummy;
     if (numpixels[0]>0){ 
     for (m=1;m<numpixels[0];m++){
-        for (j=1;j<2;j++){
-            if (startx+m<128){
-               display_pixel_set(startx+m, starty+j,1); 
-            }
+        for (j=1;j<4;j++){
+            //if (startx+m<128){
+               display_pixel_set(starty+j, startx-m,1); 
+            //}
         }
+    }   
+}
+    if (numpixels[0]<0){
+      for(mm=1;mm>numpixels[0];mm--){
+          for(j=1;j<4;j++){
+              //if (startx+mm,128){
+                 //what should the arguments of display_pixel_set be (val?)
+                  display_pixel_set(starty+j, startx-mm,1);
+              
+          }
+      }  
+    }
+}
+
+int display_acc_y(int numpixels[2]){
+    int p,b,g,startx,starty;
+   startx=64;
+   starty=32;
+   if (numpixels[1]>=0){   
+   for(p=0;p<numpixels[1];p++){
+          for(g=1;g<4;g++){
+                  display_pixel_set(starty-p, startx+g,1);
+        
+          }
+   }
+   }
+   int h;
+    if (numpixels[1]<0){
+        for(b=0;b>numpixels[1];b--){
+            for(h=1;h<4;h++){
+                display_pixel_set(starty-b,startx+h,1);
+            }
+           
+        }
+    }
     }
     
     
-}
-}
+             
+
 
 
 
